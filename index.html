@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相生 AI音楽一覧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #e6f3ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #7b68ee;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subtitle {
+            color: #9370db;
+            font-size: 1.1em;
+        }
+        
+        .search-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        #searchInput {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #ddb3ff;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s;
+        }
+        
+        #searchInput:focus {
+            outline: none;
+            border-color: #9370db;
+            box-shadow: 0 0 10px rgba(147, 112, 219, 0.2);
+        }
+        
+        .music-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .music-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .music-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(147, 112, 219, 0.3);
+            border-color: #ddb3ff;
+        }
+        
+        .music-title {
+            color: #7b68ee;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .youtube-embed {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        
+        .youtube-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .page-btn {
+            padding: 10px 15px;
+            background: #f0e6ff;
+            border: 2px solid #ddb3ff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #7b68ee;
+            font-weight: bold;
+        }
+        
+        .page-btn:hover {
+            background: #ddb3ff;
+            color: white;
+        }
+        
+        .page-btn.active {
+            background: #9370db;
+            color: white;
+            border-color: #9370db;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .footer-link {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            background: linear-gradient(135deg, #ffd4e5 0%, #d4e5ff 100%);
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer-link a {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #9370db 0%, #7b68ee 100%);
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 30px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .footer-link a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #9370db;
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .music-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .music-card {
+                padding: 15px;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .footer-link a {
+                font-size: 1em;
+                padding: 12px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 相生 AI音楽一覧 🎵</h1>
+            <p class="subtitle">aioi AI music</p>
+        </header>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="曲名を検索...">
+        </div>
+        
+        <div id="musicContainer" class="music-grid"></div>
+        
+        <div id="pagination" class="pagination"></div>
+        
+        <div class="footer-link">
+            <a href="https://mypage.syosetu.com/2932592/" target="_blank" rel="noopener noreferrer">
+                📚 相生小説（小説家になろう）📚
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        // ここに音楽データを追加してください
+        // 例: { title: "曲名", videoId: "YouTubeの動画ID" }
+        const musicData = [
+            { title: "善処します", videoId: "8Ya1SIcU388" },
+            { title: "天秤は傾く", videoId: "C3he_4sGSKU" },
+            { title: "曖昧", videoId: "2VaCH4w9g48" },
+            { title: "曖昧さ回避", videoId: "yHmmgr70iYc" },
+            { title: "キミと花火の華", videoId: "KxUGm7YC8rg" },
+            { title: "線香花火が消えるまで", videoId: "bkO9mFuDamk" },
+            { title: "七夕恋夜空", videoId: "gJk2h6D9fIQ" },
+            { title: "他人の境界線", videoId: "mYv3fPnDfPk" },
+            { title: "七夕雨", videoId: "ElJFs1uN31U" },
+            { title: "豆腐メンタル", videoId: "tZnA6ZDt6E" },
+            { title: "永久保存版", videoId: "2_V2hVNB7kA" },
+            { title: "あっ、察し…", videoId: "AQdbpC9zeLw" },
+            { title: "知らなきゃ損", videoId: "fe3A92xkFfQ" },
+            { title: "ホンネの消失", videoId: "XMieC7QWEbY" },
+            { title: "タテマエの消失", videoId: "XugEtTfC5qI" },
+            { title: "キリヌキ", videoId: "pp7e8nd3wI8" },
+            { title: "クウラン", videoId: "FtWMlx-zh80" },
+            { title: "オカワリ", videoId: "FFEkfX-6eaI" },
+            { title: "ミガワリ", videoId: "SN-bVHEovVw" },
+            { title: "チラ見チラチラ", videoId: "QScmP6WcY1w" },
+            { title: "雨と虹の間で", videoId: "Y8NycVJGdXs" },
+            { title: "人生の舵取り", videoId: "fzCMXwLIvYM" },
+            { title: "人任せからの卒業", videoId: "UhvimgQSs6Q" },
+            { title: "雨が止んだら", videoId: "Q_OQhqRCIpI" },
+            { title: "マイナーチェンジ", videoId: "P7KakTyD734" },
+            { title: "台風を導く雨音", videoId: "FDjK9woZAHE" },
+            { title: "しがらみレボリューション", videoId: "FTK8_Egqdsw" },
+            { title: "マーベラスレイン", videoId: "HUZ1LoorFEQ" },
+            { title: "虚無タイム", videoId: "QKEG7f_qh3Y" },
+            { title: "しきたりからの解放", videoId: "U_cdcxlNSiQ" },
+            { title: "前例踏襲さようなら", videoId: "ZxIUxDXxHzM" },
+            { title: "言葉の裏に不安", videoId: "Z9o_5V4bwR4" },
+            { title: "あまりにも安すぎる", videoId: "IGNX1AdYaEA" },
+            { title: "事なかれ主義", videoId: "Dk4psWHobME" },
+            { title: "マイクロリタイアメント", videoId: "Cl-8CwSbpYo" },
+            { title: "両雄激突", videoId: "vSrkZgZBeRc" },
+            { title: "AI地域おこし", videoId: "qgR0bhSQ-10" },
+            { title: "レプリカラブ", videoId: "_dcucVr8Dh0" },
+            { title: "アルゴリズム嫌悪", videoId: "StmQORZAtMs" },
+            { title: "高難易度地方在住", videoId: "kEFUSRABTXo" },
+            { title: "正義の暴走", videoId: "i4lhwzaVrYI" },
+            { title: "Nostalgic Hero", videoId: "RldJskGCIEE" },
+            { title: "Nostalgic Heroine", videoId: "R6hXe6TbebM" },
+            { title: "奇妙なエンカウント", videoId: "PqkF0yK8TD8" },
+            { title: "ふるさと父の日", videoId: "mjn0iCPzwkw" },
+            { title: "ニコニコラヴァーズ", videoId: "Ybgj1Lg39eU" },
+            { title: "不死鳥カンパニー", videoId: "uRmZWnrB9Iw" },
+            { title: "賞味期限切れ世界", videoId: "kPkCj13dH7g" },
+            { title: "誰もが主役になれる世界", videoId: "F4WZO2jFbp4" },
+            { title: "無限サービス", videoId: "X7z4yRXlGNI" },
+            { title: "ありのままの田舎空気", videoId: "uVK4gqmm7e4" },
+            { title: "敗者のいない世界へ", videoId: "3rJ3QJbClrA" },
+            { title: "オーダーメイドラヴァーズ", videoId: "Z_9lbTXcI8g" },
+            { title: "我慢の限界", videoId: "g6MU1rhAF3k" },
+            { title: "復讐は幸せになること", videoId: "nVxM04I4MdQ" },
+            { title: "意味ない言の葉", videoId: "y8ziOMg8s5w" },
+            { title: "日常の落とし穴", videoId: "CgQ8k9aIzH4" },
+            { title: "限界を知った", videoId: "0i43eXKfZ14" },
+            { title: "限界を知らない", videoId: "vP6pUTuJsc0" },
+            { title: "失恋の預かり所", videoId: "mwlGCMLYtgU" },
+            { title: "ブーケを受け取れない", videoId: "j9P9OtZAoiU" },
+            { title: "ひび割れた世界で", videoId: "RllmuvfTfPA" },
+            { title: "幼い恋の残響", videoId: "WQuyadluG9E" },
+            { title: "ジェネリックな日常", videoId: "EXnQ8YLpwpw" },
+            { title: "いいかげん", videoId: "rFVao8EYu9g" },
+            { title: "好転サイン", videoId: "Hbs_IiMI40w" },
+            { title: "先手必勝の一手", videoId: "PoPkLKFWuB8" },
+            { title: "君とのエンドロール", videoId: "auV6vt8gYf0" },
+            { title: "思いやり0%", videoId: "JS-n6LNsjqo" },
+            { title: "今から本領発揮", videoId: "ctac5EDEftY" },
+            { title: "いいわけの達人", videoId: "DCeC-3b4fSc" },
+            { title: "前言撤回", videoId: "Vk4HWpyqIvY" },
+            { title: "一匹狼で生きる", videoId: "-Qba9DMeNjk" },
+            { title: "婚活フェードアウト", videoId: "xOuqt7_MkPI" },
+            { title: "婚活のフツウ", videoId: "gvSnrg35Szw" },
+            { title: "拙者、田舎侍", videoId: "dAvhpDDsUdo" },
+            { title: "田舎の罠", videoId: "j3U-SjTI0GI" },
+            { title: "地平線go!go!", videoId: "7owUiANCqX4" },
+            { title: "恋するgo!go!", videoId: "Vgs1UNZC3kY" },
+            { title: "縁がつながる同窓会", videoId: "J6dQTNecmaM" },
+            { title: "White wedding", videoId: "2Fxd5eMPMEY" },
+            { title: "夢の世界へgo!go!go!", videoId: "Sy50qH20khg" },
+            { title: "妄想世界go!go!go!", videoId: "LsbJprjT4Ao" },
+            { title: "ヒットgo!go!go!", videoId: "reyl4-c3BWk" },
+            { title: "地方go!go!go!", videoId: "5XwiiKMFmwk" },
+            { title: "田舎go!go!go!", videoId: "tMoagOvVWgo" },
+            { title: "ウエディングブーケをキャッチして", videoId: "weAmOhHtLHY" },
+            { title: "Best wishes for your marriage", videoId: "dQw4w9WgXcQ" },
+            { title: "うまいもん巡り", videoId: "JwCxjTppZuE" },
+            { title: "うまいもん探し", videoId: "VBOY_AbDS8g" },
+            { title: "割り勘一円単位", videoId: "31b1njFRK4U" },
+            { title: "蝕の季節", videoId: "avy8qlhFAus" },
+            { title: "ポンコツロード", videoId: "ydxYsqPjYck" },
+            { title: "ポンコツラヴァーズ", videoId: "yWzBBbl-GHU" },
+            { title: "ふるさと母の日", videoId: "Uze21jnYmos" },
+            { title: "他とは違う田舎アピール", videoId: "JumxC-J6Qio" },
+            { title: "涙トワイライト", videoId: "d0hCXrDDRzI" },
+            { title: "ポンコツ社会人", videoId: "nG-7slJNaiQ" },
+            { title: "疲れ眼", videoId: "xxjoxwE6h94" },
+            { title: "本日休業中", videoId: "JeBm73PR91U" },
+            { title: "本日営業中", videoId: "Ldi-ahJpRXI" },
+            { title: "接続解除", videoId: "8VUwIcRa52U" },
+            { title: "昼行燈", videoId: "nMkmQCg26eM" },
+            { title: "抜け駆け禁止", videoId: "PJpC5b5vy_k" },
+            { title: "穏やかな和風音楽", videoId: "kaS-lwT4_Zo" },
+            { title: "深呼吸", videoId: "vq_tt68Iy8U" },
+            { title: "華やかな和風音楽", videoId: "PdjgNIH2ryo" },
+            { title: "咲き誇る和風女性", videoId: "SW2nyJMsPa0" },
+            { title: "唯一無二の君", videoId: "8AlceH9ZLYo" },
+            { title: "童心に帰る", videoId: "n7yg7jN3ICg" },
+            { title: "幸福の連鎖", videoId: "sx2cCeyzYSs" },
+            { title: "社会の優等生じゃない", videoId: "9D4OFMcnbzs" },
+            { title: "和風　江戸を生きる", videoId: "zgL5gIH9kOI" },
+            { title: "地固め", videoId: "cT0vUOKuHLU" },
+            { title: "ありったけ", videoId: "3poaL4mDykY" },
+            { title: "君臨", videoId: "a_IieXsjUUo" },
+            { title: "伝説降臨", videoId: "EnvZRuLIOj0" },
+            { title: "超優良物件", videoId: "GQmrqCvmVVo" },
+            { title: "アファメーション", videoId: "dQw4w9WgXcQ" },
+            { title: "ハイヤーセルフ", videoId: "UU8uc-dgce4" },
+            { title: "本日のレース", videoId: "91FVlZw9cjE" },
+            { title: "本日の運勢", videoId: "ShStiajmWo4" },
+            { title: "本日の動画", videoId: "04-VyI_f364" },
+            { title: "本日のオススメメニュー", videoId: "f4KCGJgLapo" },
+            { title: "本日のイラスト", videoId: "elvMmuYb-A8" },
+            { title: "本日の投稿", videoId: "7piSann6Sb8" },
+            { title: "本日の一冊", videoId: "q2TsI-NhNWs" },
+            { title: "非王道ルート", videoId: "NJSMfDkeJtY" },
+            { title: "NPCデイズ", videoId: "15rpyuRWe-0" },
+            { title: "お忍びデイズ", videoId: "rrlCxSs5kWs" },
+            { title: "王道ルート", videoId: "RdCbuFSB-xk" },
+            { title: "ブラックコーヒー", videoId: "y7TZGH4woO4" },
+            { title: "ブラックボックス", videoId: "qbroOw_E_VE" },
+            { title: "NPCルート", videoId: "WbLeG0yk0Hg" },
+            { title: "名脇役", videoId: "6AcLa34uL8Y" },
+            { title: "横転", videoId: "vn8JPErIOmc" },
+            { title: "つよつよエンジニア", videoId: "gyjZOOtTdVc" },
+            { title: "つよつよクリエイター", videoId: "1PnKCqEUc3k" },
+            { title: "つよつよメンタル", videoId: "Yiue6daI5Qc" },
+            { title: "つよつよスキル", videoId: "7ktt5TBHvog" },
+            { title: "つよつよA I", videoId: "UB2nl9wyhkk" },
+            { title: "僕らのハッピーエンド", videoId: "Yh259c1mBnI" },
+            { title: "僕らのノーマルエンド", videoId: "iXjhl12mkGo" },
+            { title: "駄々っ子ダダダダーン", videoId: "Iz9BzMSBCfM" },
+            { title: "塩対応でおっぱらえ", videoId: "LeZo20JwtNU" },
+            { title: "全力ミュート", videoId: "NvEiZ-7Sc7o" },
+            { title: "貧乏暇なし", videoId: "HlEX0s7XzZ8" },
+            { title: "地方風土記", videoId: "e-HgPx2tNIc" },
+            { title: "タワークライマー", videoId: "TvkH9MN7cE8" },
+            { title: "運命のサーキットブレーカー", videoId: "1C-FEdMmZRg" },
+            { title: "ログインしました", videoId: "M9QoW04R4-w" },
+            { title: "ログアウトしました", videoId: "3nmnpH_XYlo" },
+            { title: "ないものねだり", videoId: "pYk2-r6gaI4" },
+            { title: "よいとこどり", videoId: "ynZ9u4R3qjw" },
+            { title: "君へのまわり道", videoId: "YN67wZB4DrY" },
+            { title: "よりどりみどり", videoId: "_i6_esgl15Y" },
+            { title: "うたた寝", videoId: "hV9qBiLddTY" },
+            { title: "アドバンスボーダー", videoId: "4ARxdqocGko" },
+            { title: "初心に戻ろう", videoId: "04A4OqyqbZM" },
+            { title: "改革のファンファーレ", videoId: "Ra1OGx87D6s" },
+            { title: "確証バイアス", videoId: "qFlu4rIXY18" },
+            { title: "星導 - アンビエント", videoId: "oVyS_npMrig" },
+            { title: "ディスインフォメーション", videoId: "mXbf2US0hU4" },
+            { title: "桜導", videoId: "IN_eDdYg6S4" },
+            { title: "ディープフェイク", videoId: "Uc0vfKW5xLk" },
+            { title: "今日から新入生", videoId: "e6--Y-bhW9o" },
+            { title: "秘密のパビリオン", videoId: "cvVsuBw0Ls8" },
+            { title: "桜しべふる", videoId: "9-_nT8qqJDw" },
+            { title: "エイプリルフールのネタばらし", videoId: "qpzQXeTMKaA" },
+            { title: "五月七日をつゆりと呼んで", videoId: "yrO8EKZe2vc" },
+            { title: "四月一日をわたぬきと呼んで", videoId: "u4AexwQ54_s" },
+            { title: "柳に小野道風", videoId: "KEoRt0VpW-Q" },
+            { title: "桐に鳳凰", videoId: "eRV2hdvdJgQ" },
+            { title: "紅葉に鹿", videoId: "Mks48Wp05ec" },
+            { title: "菊に盃", videoId: "E4Q3-uL8Th0" },
+            { title: "芒に月", videoId: "1g9Sqtq12js" },
+            { title: "萩に猪", videoId: "mSr-CA8YR8A" },
+            { title: "菖蒲に八橋", videoId: "OqPiHAn4ZgY" },
+            { title: "牡丹に蝶", videoId: "jUSR-3aCjuI" },
+            { title: "桜に幕", videoId: "41m7IJW2EzA" },
+            { title: "藤に不如帰", videoId: "Ovey4bLgyv0" },
+            { title: "梅に鶯", videoId: "5kx5a1WkqBo" },
+            { title: "松に鶴", videoId: "ebVFCcCfEvA" },
+            { title: "希望のないパンドラの箱", videoId: "EcndupD5Pwo" },
+            { title: "切っちゃえ、縁", videoId: "WpKnKAjEt1k" },
+            { title: "カサンドラの憂鬱", videoId: "4tjzz9ptzrU" },
+            { title: "アンインストールLOVE DAYS", videoId: "jsVB49_FCkc" },
+            { title: "鎖アンインストール", videoId: "vVHzndsNdb0" },
+            { title: "ローカルルールインストール", videoId: "ynTz63id8Ck" },
+            { title: "初恋のあの子はあととり娘", videoId: "CbbH-pYNpNE" },
+            { title: "ローカルルールアンインストール", videoId: "rwa2EJHlQYE" },
+            { title: "タイムカプセル 未来での再会", videoId: "pGKswgQepWU" },
+            { title: "遅い春を待ちわびて", videoId: "SItvLOdLBjA" },
+            { title: "春の一手詰め", videoId: "UlhnoimEe1Y" },
+            { title: "親に打ち砕かれた田舎の恋", videoId: "x33w8cQtzCQ" },
+            { title: "日陰に咲く花", videoId: "MBrV2oK4YSc" },
+            { title: "隅に咲く一輪の花", videoId: "qHny8-bLKAA" },
+            { title: "リセット願望", videoId: "FA1mUvLBDQU" },
+            { title: "オーバーワーク", videoId: "Re9GzE0Jmk0" },
+            { title: "更なる進化の兆し", videoId: "b4EaQyuDM0w" },
+            { title: "砂糖菓子の世界", videoId: "mfoaHAkc278" },
+            { title: "うつろなため息", videoId: "PAJgNyybn6k" },
+            { title: "ローカル桜ロード", videoId: "zW7iPeTcI5k" },
+            { title: "ぼろぞうきんみたいな私", videoId: "FfmDXsY2pCM" },
+            { title: "うつろな定期報告", videoId: "fpO6ROc8MCE" },
+            { title: "スキップデイズ", videoId: "vw4gbpdRWJc" },
+            { title: "陰謀論", videoId: "tPbaHveNjG0" },
+            { title: "Time invited by the sound of the flute", videoId: "tdmvZcACrpU" },
+            { title: "桃色時代", videoId: "uV2xOXfXxbM" },
+            { title: "カフェで人気のモカムース", videoId: "PFek304xZn0" },
+            { title: "名残りの雪", videoId: "MHnlxSkCmB4" },
+            { title: "39サンキュー記念日", videoId: "Bp5Hu9aFSr8" },
+            { title: "和風桜の季節に", videoId: "6lrLBSJXxj0" },
+            { title: "春へのまわり道", videoId: "xdHg20Fa68E" },
+            { title: "純情からの卒業", videoId: "FAZo-5Fgs-o" },
+            { title: "リーディングライン", videoId: "09mOMiK9hO0" },
+            { title: "馬気性難", videoId: "o7ycwfyUQqg" },
+            { title: "アライグマのマーチ", videoId: "5UNmjO2Kwz0" },
+            { title: "酒は百薬の長されど万病の元", videoId: "vMgl2GyQB9U" },
+            { title: "今は一人夜桜を眺めて", videoId: "1RYmQaP119Y" },
+            { title: "Electronic Move", videoId: "qGcBkAR840A" },
+            { title: "株主優待耐える暴落", videoId: "N00cWtWuJKw" },
+            { title: "喜びの声懸賞当選", videoId: "RO7b0LPxHts" },
+            { title: "徒し契り", videoId: "_tzoXYnALQE" },
+            { title: "サクラキング", videoId: "_yd34LjIVLbs" },
+            { title: "雪解け、やがて春になる", videoId: "FByHfvnv5-4" },
+            { title: "March Graduation", videoId: "5TJveokT6kE" },
+            { title: "受験の勝者", videoId: "L20IN-dKM_I" },
+            { title: "推しの卒業", videoId: "pnqfS6ohlGA" },
+            { title: "寂しい夜に聴こえる", videoId: "Xge3tcmluyk" },
+            { title: "にゃんかかわいい", videoId: "362xt12mmoU" },
+            { title: "にゃんこ　にゃにがにゃんだかわからにゃい", videoId: "xWbqnQa_7Xo" },
+            { title: "人口減少ざまぁ", videoId: "Z8qIo5PjmlU" },
+            { title: "車なし生活できぬ田舎より", videoId: "39ByWBAhyyI" },
+            { title: "にゃんとこれしき へっちゃらにゃん", videoId: "KjQ1-cmefqk" },
+            { title: "卒業 今旅立つ季節", videoId: "yFIPicK9WcM" },
+            { title: "失業者は求人検索する", videoId: "cRvfOptSPaI" },
+            { title: "法は家庭に入らずの絶望", videoId: "vJywIcnrlP4" },
+            { title: "人材不足ざまぁ 人を大事にしろよ", videoId: "iZ2VSFtejpw" },
+            { title: "ネコにゃんにゃんにゃん", videoId: "iauSXMVesaM" },
+            { title: "楽しい地方創生アップデート", videoId: "o00nC9c65q8" },
+            { title: "備蓄米放出", videoId: "EGVlgSn2-3w" },
+            { title: "安全祈願", videoId: "gFUOqru_VcY" },
+            { title: "縁切り祈願", videoId: "KUuAG9IbWq0" },
+            { title: "凍星", videoId: "sOw2MiBhWCI" },
+            { title: "迷惑メール", videoId: "mkbPkncPfoc" },
+            { title: "縦ロールお嬢様", videoId: "NR7m2fxAyuM" },
+            { title: "エコーチャンバー効果", videoId: "W2H1gTiCwG8" },
+            { title: "恋とはどんなものかしら", videoId: "4evAldANupQ" },
+            { title: "フィルターバブル", videoId: "tDYmWYaw0Xg" },
+            { title: "現状維持バイアス", videoId: "BzPv-bNWn0g" },
+            { title: "地方創生", videoId: "TviY7o0rGbg" },
+            { title: "引き寄せジプシー", videoId: "PqqO3RdamUk" },
+            { title: "Fun Music Festival", videoId: "ybNS9PxTxC0" },
+            { title: "ラブナウローディング", videoId: "VdItuVKfCNc" },
+            { title: "田舎の五人組隣組アップデート", videoId: "BYWmYipQjYw" },
+            { title: "ラブアップデート", videoId: "jFKicr4I6mM" },
+            { title: "厄除け祈願", videoId: "wgmsMDp01rw" },
+            { title: "無病息災", videoId: "eyfv-DnjHeQ" },
+            { title: "婚約破棄", videoId: "5DKkuxxDeaE" },
+            { title: "田舎へ帰省ブルー", videoId: "dn-7c5LrT1k" },
+            { title: "Graduation of Love", videoId: "KR7fQFN4Nic" },
+            { title: "ボーナスなし お年玉みたいな寸志", videoId: "KlIIpkFIEeY" },
+            { title: "即席料理", videoId: "h03-T3T2EJM" },
+            { title: "ゴーストタウン", videoId: "1e5xbwdcLuo" },
+            { title: "夢が見れないブラック企業", videoId: "za595WLT_a4" },
+            { title: "ファーストフード", videoId: "gvDH8YHjtwg" },
+            { title: "社畜の日常あるある", videoId: "qlMQvdmCohc" },
+            { title: "負動産相続者", videoId: "cN-iG60FmE4" },
+            { title: "ローカルアイドル", videoId: "nSf6odXSN78" },
+            { title: "田舎の限界集落", videoId: "02dNPJrYbuE" },
+            { title: "心願成就", videoId: "j2MwwfzoyfA" },
+            { title: "令和米騒動", videoId: "0eY1d8WlJgw" },
+            { title: "辞めたい親戚の集まり", videoId: "kBmuxDu3xx4" },
+            { title: "捨てたい重荷", videoId: "riqIcViV-D8" },
+            { title: "地元が嫌だ", videoId: "Kx3GsozhV8g" },
+            { title: "Be My Valentine", videoId: "rBbvRo_0ZgM" },
+            { title: "本末転倒", videoId: "Y3VL2Zy_js8" },
+            { title: "縁結び祈願", videoId: "m48PW6Kym0U" },
+            { title: "懐柔計画", videoId: "DFONnXn29cU" },
+            { title: "イナズマバレンタイン", videoId: "7hRY5L2bwZI" },
+            { title: "人間関係清算フェードアウト", videoId: "Jfp1TWieyF0" },
+            { title: "合格祈願", videoId: "91fHsD4UFkU" },
+            { title: "ひとりぼっちのバレンタイン", videoId: "ppVbyv16Huo" },
+            { title: "その覚悟受け取った", videoId: "f-Oi1c5FuKo" },
+            { title: "アップデートなう", videoId: "73pG127FCv0" },
+            { title: "家制度は廃止されています", videoId: "3H8uKrjwjds" },
+            { title: "負の遺産地方の実家", videoId: "-UcwB1cxgVs" },
+            { title: "絶好調キープ", videoId: "1r34rQNLSu0" },
+            { title: "泡沫の恋人", videoId: "EDGk0-9R2GU" },
+            { title: "オシャレは寒さとの戦い", videoId: "t-DOGL_SMKo" },
+            { title: "長老の声", videoId: "qaEqP_8nw3A" },
+            { title: "落花生", videoId: "PhEODt0MRJw" },
+            { title: "愛想笑い", videoId: "e2PRKv0ec6A" },
+            { title: "為替円高ブルース", videoId: "qhmA6O2fJqE" },
+            { title: "為替円安ラプソディ", videoId: "HbQNx79Tddk" },
+            { title: "お布施", videoId: "8PNPLpYv3ws" },
+            { title: "花鳥風月", videoId: "PvhyaPZ6hUM" },
+            { title: "同じ日々のルーティン", videoId: "Ow6danv3OxM" },
+            { title: "Trash into Treasure", videoId: "q3KmfB_TBFw" },
+            { title: "復縁祈願", videoId: "uIHj3XgCxfE" },
+            { title: "カンタン最強おつまみ", videoId: "GNGpVz4Cj3Y" },
+            { title: "疎遠になりたい", videoId: "vkF-tpwXAxI" },
+            { title: "桜花爛漫咲き乱れた私の恋", videoId: "d5EF7Nmwa-A" },
+            { title: "あまりに適当すぎる", videoId: "C7WIff0JE2s" },
+            { title: "割れ鍋に綴じ蓋", videoId: "Vd6O2_6mfcQ" },
+            { title: "Countryside Update", videoId: "_tOKHeHIrCo" },
+            { title: "至高へ至る旅", videoId: "O6lI7vwkkmc" },
+            { title: "刹那の逃避", videoId: "7ANb-WGW42w" },
+            { title: "田舎アップデート", videoId: "FQzY2UPA4UY" },
+            { title: "どうでもいいどうだっていい", videoId: "eD94qloa-x4" },
+            { title: "田舎キャンセル界隈", videoId: "1OXPfD9UOcc" },
+            { title: "忍の戦い", videoId: "QnBAl9jnSfU" },
+            { title: "S評価", videoId: "j3lJRb4B68A" },
+            { title: "あーもういいや", videoId: "f-BSZNgAqpI" },
+            { title: "未勝利戦", videoId: "xhSHQY7QrGw" },
+            { title: "遍路道", videoId: "xOXvFcHYy-8" },
+            { title: "エクストラステージ", videoId: "zER2v41-NJ8" },
+            { title: "Beginner's Luck dream", videoId: "jMnaZb6tyn8" },
+            { title: "Naming Sense", videoId: "4CZnIb8So4o" },
+            { title: "Labyrinth", videoId: "tYcQJDSZsO0" },
+            { title: "ゲームオーバーなんか怖くない", videoId: "xaNRhvYUgVo" },
+            { title: "Game Over", videoId: "ZVUTnAAeNWc" },
+            { title: "Pixel Love", videoId: "ikA-He-BD48" },
+            { title: "シンクロニシティ", videoId: "DgdYIr2-Y2o" },
+            { title: "にわかオタクではありません", videoId: "XqfTGNYCGx0" },
+            { title: "超ハードモード", videoId: "Rit0piAcsfs" },
+            { title: "超バッドモード", videoId: "hkpFbFUARNQ" },
+            { title: "超ダークモード", videoId: "b9ymwlogvX8" },
+            { title: "超カオスモード", videoId: "VxkF459NqZk" },
+            { title: "超ハッピーモード", videoId: "kcNrvaeVIzM" },
+            { title: "超ラッキーモード", videoId: "tG9atnZIJPk" },
+            { title: "かわいいハムスター大量", videoId: "7DenMRPrcRE" },
+            { title: "人か蝶が見た夢", videoId: "ZQcShjF6cLs" },
+            { title: "雪の奇跡", videoId: "AkfTzmiN1Fc" },
+            { title: "因果応報", videoId: "G0sNzbbxXcM" },
+            { title: "キャパオーバー", videoId: "zork7p9onTg" },
+            { title: "超イージーモード", videoId: "1aLr9eYzaLs" },
+            { title: "通行止め", videoId: "K46LhfWTe3A" },
+            { title: "初風", videoId: "s9a6Nd2hkmA" },
+            { title: "紫電清霜", videoId: "4s28-xig6xk" },
+            { title: "初春", videoId: "vaoLQYwpq24" },
+            { title: "肯定のコトバ", videoId: "K3FHZBwhC1E" },
+            { title: "継続はチカラなり", videoId: "umNFE8Bz8MI" },
+            { title: "余白のない日常", videoId: "f7HYP6p6ack" },
+            { title: "予祝", videoId: "4o9x2s-6cDU" },
+            { title: "学業成就、願いへの道", videoId: "Vs8cFVfGyyE" },
+            { title: "御伽話の世界へ", videoId: "H-FxoZkM9tA" },
+            { title: "大難を小難に小難を無難に変えるチカラ", videoId: "WmPjrZlD9EI" },
+            { title: "御守り", videoId: "5Bbxc_w-0Fg" },
+            { title: "宇宙の叡智アカシックレコード", videoId: "RP3zXUV-r00" },
+            { title: "Parallel World Time Traveler", videoId: "jMSdqUtHfew" },
+            { title: "Akashic Records", videoId: "RYO4iXqTYUo" },
+            { title: "パラレルワールド時空の旅人", videoId: "SjaCETKgcQY" },
+            { title: "撤退", videoId: "kR4Yf1eXgfY" },
+            { title: "Favorite library", videoId: "urNDZzok2So" },
+            { title: "クレーマー", videoId: "vVKBF9dagjI" },
+            { title: "ツインレイ - チルアウト", videoId: "sT2OxpBzadQ" },
+            { title: "相場", videoId: "Trm-lHn1cvc" },
+            { title: "最強寒波襲来", videoId: "CIub-xF9vRs" },
+            { title: "徹底管理世界", videoId: "oCoRnv8ld24" },
+            { title: "一年を占うおみくじ", videoId: "T-I8sGOm5H0" },
+            { title: "Rust and Shadows", videoId: "1_GFBRspfmU" },
+            { title: "Hamster's Great Adventure", videoId: "ESzmczKCqq0" },
+            { title: "成り上がり", videoId: "j6FHDUse538" },
+            { title: "イルカはいるか", videoId: "a4clF4Gnseo" },
+            { title: "Luck in the Year of the Snake", videoId: "TgmoKOvhJ80" },
+            { title: "仕事始め", videoId: "jR4gPm9MEF8" },
+            { title: "巳年の幸運", videoId: "teQ4d7WH9cg" },
+            { title: "Medusa, the Gorgon Sisters", videoId: "Ti-UixBf-hs" },
+            { title: "陽気な笛吹", videoId: "XI26wBp2E_M" },
+            { title: "悪役令嬢の真実", videoId: "VTbhewe0nVI" },
+            { title: "ゴルゴン三姉妹メデューサ", videoId: "eHGt4p-nDSA" },
+            { title: "新年会", videoId: "1hUKmE4y7Rk" },
+
+
+
+        ];
+        
+        const itemsPerPage = 9;
+        let currentPage = 1;
+        let filteredData = [...musicData];
+        
+        function getYouTubeEmbedUrl(videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+        
+        function renderMusic(page = 1) {
+            const container = document.getElementById('musicContainer');
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            if (pageData.length === 0 && filteredData.length === 0) {
+                container.innerHTML = '<div class="no-results">検索結果が見つかりませんでした</div>';
+                return;
+            }
+            
+            container.innerHTML = pageData.map(music => `
+                <div class="music-card">
+                    <h3 class="music-title">${music.title}</h3>
+                    <div class="youtube-embed">
+                        <iframe 
+                            src="${getYouTubeEmbedUrl(music.videoId)}"
+                            title="${music.title}"
+                            allowfullscreen
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const paginationContainer = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // 前へボタン
+            paginationHTML += `
+                <button class="page-btn" onclick="changePage(${currentPage - 1})" 
+                    ${currentPage === 1 ? 'disabled' : ''}>
+                    ←前へ
+                </button>
+            `;
+            
+            // ページ番号
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    paginationHTML += `
+                        <button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHTML += '<span style="padding: 10px;">...</span>';
+                }
+            }
+            
+            // 次へボタン
+            paginationHTML += `
+                <button class="page-btn" onclick="changePage(${currentPage + 1})" 
+                    ${currentPage === totalPages ? 'disabled' : ''}>
+                    次へ→
+                </button>
+            `;
+            
+            paginationContainer.innerHTML = paginationHTML;
+        }
+        
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderMusic(currentPage);
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function searchMusic() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm === '') {
+                filteredData = [...musicData];
+            } else {
+                filteredData = musicData.filter(music => 
+                    music.title.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            currentPage = 1;
+            renderMusic(currentPage);
+            renderPagination();
+        }
+        
+        // 検索入力にイベントリスナーを追加
+        document.getElementById('searchInput').addEventListener('input', searchMusic);
+        
+        // 初期表示
+        renderMusic(currentPage);
+        renderPagination();
+    </script>
+</body>
+</html>
